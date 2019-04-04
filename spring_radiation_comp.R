@@ -14,8 +14,8 @@
 # 3) column headers are updated manualy - perhaps update in CS code for future
 
 rm(list=ls())
-require('lubridate')
-require('plyr')
+library('lubridate')
+library('dplyr')
 
 setwd('/Users/mloranty/Google Drive/Documents/Research/NSF_VIPER_2015-18/viper_energy/field_data_raw_2017/spring_energy_prelim/')
 
