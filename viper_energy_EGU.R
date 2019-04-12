@@ -64,17 +64,34 @@ hf.day.ld$date <- strptime(paste(hf.day.ld$year,hf.day.ld$doy,sep="_"),
 
 ################################################
 # make some plots - set working dir to EGU pres
+setwd("/Volumes/GoogleDrive/My Drive/Documents/research/presentations/annual_meetings/EGU")
 # timeseries of soil heat flux
-plot(hf.day.hd$date,hf.day.hd$shf,col="red",type = "l")
-lines(hf.day.ld$date,hf.day.ld$shf,pch=3)
+pdf(file="soil_heat_flux_ts.pdf",8,5)
+plot(hf.day.hd$date,hf.day.hd$shf,col="red",type = "p",
+     ylim = c(-5,22),xlab="",
+     ylab = expression(paste("G (W ",m^-2,")",sep="")))
+points(hf.day.ld$date,hf.day.ld$shf,pch=3)
+abline(h=0,lty = "dashed")
+dev.off()
 
 # plot radiometer data
 plot(nr.day.hd800$date,nr.day.hd800$SRup,type="p",
-     ylim=c(0,400),col="red")
-points(nr.day.hd100$date,nr.day.hd100$SRup, col="red",pch=3)
+     ylim=c(0,410),col="red",xlab="",
+     ylab = expression(paste("SW (W ",m^-2,")",sep="")))
+#points(nr.day.hd100$date,nr.day.hd100$SRup, col="red",pch=3)
 points(nr.day.ld800$date,nr.day.ld800$SRup)
-points(nr.day.ld100$date,nr.day.ld100$SRup,pch=3)
 
+plot(nr.day.hd100$date,nr.day.hd100$SRup,type="p",
+     ylim=c(0,410),col="red",pch=3,xlab="",
+     ylab = expression(paste("SW (W ",m^-2,")",sep="")))
+points(nr.day.ld100$date,nr.day.ld100$SRup,col="blue")
+
+# plot albedo
+plot(nr.day.hd800$date,nr.day.hd800$SRdn/nr.day.hd800$SRup,type="p",
+     ylim=c(0,1),col="red",xlab="",
+     ylab = "Albedo")
+#points(nr.day.hd100$date,nr.day.hd100$SRup, col="red",pch=3)
+points(nr.day.ld800$date,nr.day.ld800$SRdn/nr.day.ld800$SRup)
 #calculate and plot cumulative soil heat flux
 hf.day.hd16 <- hf.day %>% 
   filter(year ==2016, site == "hd", 151 < doy & doy < 213) 
@@ -93,13 +110,16 @@ hf.day.ld17 <- hf.day %>%
 hf.day.ld17$cs <- cumsum(hf.day.ld17$shf)
 
 # plot cumulative soil heat flux
-pdf("/Volumes/GoogleDrive/Do")
-plot(hf.day.ld17$doy,hf.day.ld17$cs*0.0036,type="l",
-     ylab = "Cumulative G (MJ)",xlab="")
-lines(hf.day.hd17$doy,hf.day.hd17$cs*0.0036,col="red")
-lines(hf.day.hd16$doy,hf.day.hd16$cs*0.0036,col="red",lty="dashed")
-lines(hf.day.ld16$doy,hf.day.ld16$cs*0.0036,lty="dashed")
-
+pdf(file="soil_heat_flux_cum.pdf",5,5)
+plot(hf.day.ld17$doy,hf.day.ld17$cs*0.0036,type="l",lwd=2,
+     ylab = expression(paste("Cumulative G (MJ",m^-2,")",sep="")),xlab="")
+lines(hf.day.hd17$doy,hf.day.hd17$cs*0.0036,col="red",lwd=2)
+lines(hf.day.hd16$doy,hf.day.hd16$cs*0.0036,col="red",lty="dashed",lwd=2)
+lines(hf.day.ld16$doy,hf.day.ld16$cs*0.0036,lty="dashed",lwd=2)
+legend("topleft",c("LD 2017", "HD 2017", "LD 2016", "HD 2016"),
+       lwd=2, lt = c("solid", "solid","dashed", "dashed"),
+       col=c("black","red"),bty="n")
+dev.off()
 #
 plot(hf.day.hd16$doy,hf.day.hd16$shf,col="red",lty="solid",lwd=2,type="l",
      xlim = c(160,300),
