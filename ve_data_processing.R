@@ -1,6 +1,11 @@
+#######################################
 # full comparison of VIPER energy data
+# 
+# initially for EGU & AGU 2019
+# & eventually for manuscript
 # M. Loranty
-# 4 April 2019
+# 25 Nov 2019
+#######################################
 
 # load packages
 library(lubridate)
@@ -8,60 +13,105 @@ library(dplyr)
 
 # set working directory to lab server 
 # files should also be posted at Arctic Data Ctr
-setwd('/Volumes/data/data_repo/field_data/viperData/sensor/')
+setwd('L:/data_repo/field_data/viperData/sensor/')
 
-# read radiometer data
+rm(list=ls())
+
+############### read and aggregate net radiometer data ###############
 nr <- read.csv('campbell/radiation/netR.csv',header = T)
 
-# aggregate to daily
+# set negative shortwave values to NA
+nr$SR01Up_Avg[which(nr$SR01Up_Avg<0)] <- NA
+nr$SR01Dn_Avg[which(nr$SR01Dn_Avg<0)] <- NA
+
+# calculate albedo
+nr$alb <- nr$SR01Dn_Avg/nr$SR01Up_Avg
+
+# filter erronious albedo values at low radiation
+nr$alb[which(nr$alb>1)] <- NA
+
+# calculate surface temp
+nr$Tsurf <- ((nr$IR01DnCo_Avg/(5.67*10^-8))^0.25)-273.15
+
+# aggregate to daily - only calculate the mean if there are more than 36 half-hourly values
 nr.day <- nr %>%
   group_by(year,doy,site,loc,sensorZ) %>%
-  summarise(SRup = mean(SR01Up_Avg),
-            SRdn = mean(SR01Dn_Avg),
-            IRup = mean(IR01UpCo_Avg),
-            IRdn = mean(IR01DnCo_Avg))
+  summarise(SRup = ifelse(n()>36,mean(SR01Up_Avg, na.rm = T),NA),
+            SRdn = ifelse(n()>36,mean(SR01Dn_Avg, na.rm = T),NA),
+            IRup = ifelse(n()>36,mean(IR01UpCo_Avg, na.rm = T),NA),
+            IRdn = ifelse(n()>36,mean(IR01DnCo_Avg, na.rm = T),NA),
+            Tsrf = ifelse(n()>36,mean(Tsurf, na.rm = T),NA))
 
+# add date var
+nr.day$date <- strptime(paste(nr.day$year,nr.day$doy,sep="_"),
+                        format = "%Y_%j",tz="GMT")
+
+# get albedo values from local noon 
+alb <- nr %>%
+  filter(hour==12.0)
+
+# join the albedo data to the daily data set
+nr.day <- full_join(nr.day,alb[,c(1,2,10:13)])
+
+# remove albedo dataframe
+rm(alb)
+
+############### read and aggregate soil heat flux data ###############
+hf <- read.csv('campbell/heatflux/heatflux.csv', header = T)
+
+# aggregate to daily, by sensor, for days with at least 36 half hourly obs
+hf.d <- hf %>%
+  group_by(year,doy,site,sensorID) %>%
+  summarise(shf = ifelse(n()>36,mean(shf, na.rm = T),NA))
+
+# aggregate to daily by site
+hf.day <- hf.d %>%
+  group_by(year,doy,site) %>%
+  summarise(shf = mean(shf, na.rm = T),
+            sd = sd(shf,na.rm=T)) # for some reason standard deviation isn't working
+
+# add date var
+hf.day$date <- strptime(paste(hf.day$year,hf.day$doy,sep="_"),
+                        format = "%Y_%j",tz="GMT")
+
+# remove intermediate hf.d dataframe
+rm(hf.d)
+
+############### read and aggregate canopy ndvi data ###############
+# note that this relies on 
+# red band - down facing sensor
+rd <- read.csv("decagon/ndvi/630nm.SRSnr.csv",header = T)
+# red band - up facing sensor
+ru <- read.csv("decagon/ndvi/630nm.SRSni.csv", header = T)
+# nir band - down facing sensor
+nd <- read.csv("decagon/ndvi/800nm.SRSnr.csv",header = T)
+# nir band - up facing sensor
+nu <- read.csv("decagon/ndvi/800nm.SRSni.csv", header = T)
+
+
+############### read and aggregate met & soil data ###############
+# appogee radiometric surface temp
+Tsrf <- read.csv("decagon/met/CTargetTemp.SI411.csv", header = T)
+# soil temperature from Decagon GS-3 and 5TM sensors, respectively
+ts1 <- read.csv("decagon/soil/tempS.GS3.csv", header = T)
+ts2 <- read.csv("decagon/soil/tempS.5TM.csv", header = T)
+# soil moisture from Decagon GS-3 and 5TM sensors, respectively
+sm1 <- read.csv("decagon/soil/vwc.GS3.csv", header = T)
+sm1 <- read.csv("decagon/soil/vwc.5Tm.csv", header = T)
+
+####################################################################################################
 # subset by site/canopy level
 nr.day.hd100 <- nr.day %>%
   filter(site=="hd", sensorZ==100) 
-nr.day.hd100$date <- strptime(paste(nr.day.hd100$year,nr.day.hd100$doy,sep="_"),
-                        format = "%Y_%j",tz="GMT")
 
 nr.day.ld100 <- nr.day %>%
   filter(site=="ld", sensorZ==100) 
-nr.day.ld100$date <- strptime(paste(nr.day.ld100$year,nr.day.ld100$doy,sep="_"),
-                              format = "%Y_%j",tz="GMT")
 
 nr.day.hd800 <- nr.day %>%
   filter(site=="hd", sensorZ==800) 
-nr.day.hd800$date <- strptime(paste(nr.day.hd800$year,nr.day.hd800$doy,sep="_"),
-                              format = "%Y_%j",tz="GMT")
 
 nr.day.ld800 <- nr.day %>%
   filter(site=="ld", sensorZ==800) 
-nr.day.ld800$date <- strptime(paste(nr.day.ld800$year,nr.day.ld800$doy,sep="_"),
-                              format = "%Y_%j",tz="GMT")
-
-
-# read soil heatflux data
-hf <- read.csv('campbell/heatflux/heatflux.csv', header = T)
-
-hf.day <- hf %>%
-  group_by(year,doy,site) %>%
-  summarise(shf = mean(shf,na.rm=T),
-            stdev = sd(shf,na.rm=T))
-head(hf.day)
-
-hf.day.hd <- hf.day %>% 
-  filter(site == "hd") 
-hf.day.hd$date <- strptime(paste(hf.day.hd$year,hf.day.hd$doy,sep="_"),
-                              format = "%Y_%j",tz="GMT")
-
-hf.day.ld <- hf.day %>% 
-  filter(site == "ld") 
-hf.day.ld$date <- strptime(paste(hf.day.ld$year,hf.day.ld$doy,sep="_"),
-                           format = "%Y_%j",tz="GMT")
-
 ################################################
 # make some plots - set working dir to EGU pres
 setwd("/Volumes/GoogleDrive/My Drive/Documents/research/presentations/annual_meetings/EGU")
