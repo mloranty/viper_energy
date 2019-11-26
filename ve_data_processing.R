@@ -14,7 +14,8 @@ library(dplyr)
 # set working directory to lab server 
 # files should also be posted at Arctic Data Ctr
 setwd('L:/data_repo/field_data/viperData/sensor/')
-
+# from Mac
+setwd('/Volumes/data/data_repo/field_data/viperData/sensor/')
 rm(list=ls())
 
 ############### read and aggregate net radiometer data ###############
