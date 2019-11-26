@@ -79,14 +79,23 @@ rm(hf.d)
 
 ############### read and aggregate canopy ndvi data ###############
 # note that this relies on 
-# red band - down facing sensor
+# red band - down facing sensor with field stop
 rd <- read.csv("decagon/ndvi/630nm.SRSnr.csv",header = T)
-# red band - up facing sensor
+# red band - up facing sensor with hemispherical fov
 ru <- read.csv("decagon/ndvi/630nm.SRSni.csv", header = T)
-# nir band - down facing sensor
+# nir band - down facing sensor with field stop
 nd <- read.csv("decagon/ndvi/800nm.SRSnr.csv",header = T)
-# nir band - up facing sensor
+# nir band - up facing sensor with hemispherical fov
 nu <- read.csv("decagon/ndvi/800nm.SRSni.csv", header = T)
+# alpha 
+#a <- read.csv("decagon/ndvi/alpha.SRSni.csv", header = T)
+
+# join the down facing r and nir data, and omit extraneous columns
+dn <- full_join(rd[,c(1:5,8:10)],nd[,c(1:5,8:10)])
+up <- full_join(ru[,c(1:5,8:10)],nu[,c(1:5,8:10)])
+# correct ndvi for low-density with alpha values from high-density
+# see for http://library.metergroup.com/Manuals/14597_SRS_Web.pdf for info on method
+
 
 
 ############### read and aggregate met & soil data ###############
