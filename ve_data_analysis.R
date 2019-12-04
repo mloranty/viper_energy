@@ -14,7 +14,89 @@ setwd('C:/Users/mloranty/Documents/GitHub/viper_energy/')
 # first we should update all data for the Arctic Data Center
 #source('ve_data_processing.R')
 
+###################################################
+# make a massive timeseries plot showing all data #
+###################################################
 
+#define plotting variables
+acx <- 1.75
+lw <- 2
+hc <- 'black'
+lc <- 'red'
+
+pdf("figures/all_data_timeseries.pdf",28,20)
+par(mfrow = c(7,1), mar=c(0,5,0,2), oma=c(6,2,2,2))
+
+# subcanopy SW and LW
+plot(all.day$date,all.day$IRupL1, type = 'l',lwd = lw,
+     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$IRupH1,lwd = lw, col = hc )
+lines(all.day$date, all.day$SRupH1,lwd = lw, col = hc )
+lines(all.day$date, all.day$SRupL1,lwd = lw, col = lc )
+
+
+# differences in incident downwelling subcanopy
+plot(all.day$date,(all.day$IRupL1+all.day$SRupL1)-(all.day$IRupH1+all.day$SRupH1), 
+     type = 'l',lwd = lw,
+#     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+abline(h=0)
+# difference in ground heat flux
+lines(all.day$date, all.day$shfL-all.day$shfL,lwd = lw, col = hc )
+
+# ground heat flux
+plot(all.day$date,all.day$shfH, type = 'l',lwd = lw,
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = hc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$shfL,lwd = lw, col = lc )
+
+# air temp, soil temp, & precip
+plot(all.day$date,all.day$Tair.L, 
+     type = 'l',lwd = lw,
+     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$Tair.H,lwd = lw, col = hc )
+
+# plot soil temps
+plot(all.day$date,all.day$Tsoil.H5, 
+     type = 'l',lwd = lw,
+     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = hc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$Tsoil.L5,lwd = lw, col = lc )
+lines(all.day$date, all.day$Tsoil.L50,lwd = lw, col = lc, lty = 'dashed' )
+lines(all.day$date, all.day$Tsoil.H50,lwd = lw, col = hc, lty = 'dashed' )
+
+# plot albedo & NDVI
+plot(all.day$date,all.day$albL8, 
+     type = 'l',lwd = lw,
+     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = F, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$albH8,lwd = lw, col = hc )
+lines(all.day$date, all.day$ndvi.L,lwd = lw, col = lc, lty = 'dashed' )
+lines(all.day$date, all.day$ndvi.H,lwd = lw, col = hc, lty = 'dashed' )
+
+dev.off()
+
+#################################################################################
+############### don't need this now because of the wide data set ################
+#################################################################################
 # first examine net radiometer data for 2016
 ################################################
 # subset the data

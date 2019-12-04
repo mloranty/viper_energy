@@ -15,7 +15,7 @@ library(tidyr)
 # files should also be posted at Arctic Data Ctr
 setwd('L:/data_repo/field_data/viperData/sensor/')
 # from Mac
-setwd('/Volumes/data/data_repo/field_data/viperData/sensor/')
+#setwd('/Volumes/data/data_repo/field_data/viperData/sensor/')
 rm(list=ls())
 
 ############### read and aggregate net radiometer data ###############
@@ -159,95 +159,87 @@ rsl <- rs.day %>%
   rename(ndvi.L = ndvi)
 
 # join to the mondo data frame
-all.day <- left_join(all.day,rsh[,c(1:2,4)], )
+all.day <- left_join(all.day,rsh[,c(1:2,4)])
 all.day <- left_join(all.day,rsl[,c(1:2,4)])
 
 # remove unecessary data
 rm(d,dr,dn,u, ur, un, rs, rsh, rsl)
+
 ############### read and aggregate met & soil data ###############
+# just getting AGU data for now
 # appogee radiometric surface temp
-Tsrf <- read.csv("decagon/met/CTargetTemp.SI411.csv", header = T)
+#Tsrf <- read.csv("decagon/met/CTargetTemp.SI411.csv", header = T)
 # soil temperature from Decagon GS-3 and 5TM sensors, respectively
 ts1 <- read.csv("decagon/soil/tempS.GS3.csv", header = T)
-ts2 <- read.csv("decagon/soil/tempS.5TM.csv", header = T)
+ta <- read.csv('decagon/met/TempC.VP4.csv', header = T)
+
+#ts2 <- read.csv("decagon/soil/tempS.5TM.csv", header = T)
 # soil moisture from Decagon GS-3 and 5TM sensors, respectively
-sm1 <- read.csv("decagon/soil/vwc.GS3.csv", header = T)
-sm2 <- read.csv("decagon/soil/vwc.5Tm.csv", header = T)
+#sm1 <- read.csv("decagon/soil/vwc.GS3.csv", header = T)
+#sm2 <- read.csv("decagon/soil/vwc.5Tm.csv", header = T)
 
-####################################################################################################
-# subset by site/canopy level
+# aggregate daily air temp and join to wide data frame
+ta.day <- ta %>%
+  filter(sensorLoc == 'overstory') %>%
+  group_by(year, doy, site) %>%
+  summarise(Tair = mean(TempC.VP4, na.rm = T))
+  
+ta.hd <- ta.day %>%
+  filter(site == 'hd') %>%
+  rename(Tair.H = Tair)
 
-################################################
-# make some plots - set working dir to EGU pres
-setwd("/Volumes/GoogleDrive/My Drive/Documents/research/presentations/annual_meetings/EGU")
-# timeseries of soil heat flux
-pdf(file="soil_heat_flux_ts.pdf",8,5)
-plot(hf.day.hd$date,hf.day.hd$shf,col="red",type = "p",
-     ylim = c(-5,22),xlab="",
-     ylab = expression(paste("G (W ",m^-2,")",sep="")))
-points(hf.day.ld$date,hf.day.ld$shf,pch=3)
-abline(h=0,lty = "dashed")
-dev.off()
+ta.ld <- ta.day %>%
+  filter(site == 'ld') %>%  
+  rename(Tair.L = Tair)
+  
+all.day <- left_join(all.day,ta.hd[,c(1:2,4)])
+all.day <- left_join(all.day,ta.ld[,c(1:2,4)])  
 
-# plot radiometer data
-plot(nr.day.hd800$date,nr.day.hd800$SRup,type="p",
-     ylim=c(0,410),col="red",xlab="",
-     ylab = expression(paste("SW (W ",m^-2,")",sep="")))
-#points(nr.day.hd100$date,nr.day.hd100$SRup, col="red",pch=3)
-points(nr.day.ld800$date,nr.day.ld800$SRup)
+rm(ta.ld, ta.hd)  
+  
+# read airport precip and join to wide data frame
+pr <- read.csv('airport/airport.csv', header = T)
 
-plot(nr.day.hd100$date,nr.day.hd100$SRup,type="p",
-     ylim=c(0,410),col="red",pch=3,xlab="",
-     ylab = expression(paste("SW (W ",m^-2,")",sep="")))
-points(nr.day.ld100$date,nr.day.ld100$SRup,col="blue")
+all.day <- left_join(all.day,pr[,c(1:2,4)])
 
-# plot albedo
-plot(nr.day.hd800$date,nr.day.hd800$SRdn/nr.day.hd800$SRup,type="p",
-     ylim=c(0,1),col="red",xlab="",
-     ylab = "Albedo")
-#points(nr.day.hd100$date,nr.day.hd100$SRup, col="red",pch=3)
-points(nr.day.ld800$date,nr.day.ld800$SRdn/nr.day.ld800$SRup)
-#calculate and plot cumulative soil heat flux
-hf.day.hd16 <- hf.day %>% 
-  filter(year ==2016, site == "hd", 151 < doy & doy < 213) 
-hf.day.hd16$cs <- cumsum(hf.day.hd16$shf)
+rm(pr)
 
-hf.day.hd17 <- hf.day %>% 
-  filter(year ==2017, site == "hd", 151 < doy & doy < 213) 
-hf.day.hd17$cs <- cumsum(hf.day.hd17$shf)
+# aggregate daily soil temp and join to wide data frame
+ts.day <- ts1 %>%
+  group_by(year, doy, site, sensorZ) %>%
+  summarise(Tsoil = mean(tempS.GS3, na.rm = T))
 
-hf.day.ld16 <- hf.day %>% 
-  filter(year ==2016, site == "ld", 151 < doy & doy < 213) 
-hf.day.ld16$cs <- cumsum(hf.day.ld16$shf)
+ts.hd5 <- ts.day %>%
+  filter(site == 'hd', sensorZ == 5) %>%
+  rename(Tsoil.H5 = Tsoil)
 
-hf.day.ld17 <- hf.day %>% 
-  filter(year ==2017, site == "ld", 151 < doy & doy < 213) 
-hf.day.ld17$cs <- cumsum(hf.day.ld17$shf)
+ts.hd50 <- ts.day %>%
+  filter(site == 'hd', sensorZ == 50) %>%
+  rename(Tsoil.H50 = Tsoil)
 
-# plot cumulative soil heat flux
-pdf(file="soil_heat_flux_cum.pdf",5,5)
-plot(hf.day.ld17$doy,hf.day.ld17$cs*0.0036,type="l",lwd=2,
-     ylab = expression(paste("Cumulative G (MJ",m^-2,")",sep="")),xlab="")
-lines(hf.day.hd17$doy,hf.day.hd17$cs*0.0036,col="red",lwd=2)
-lines(hf.day.hd16$doy,hf.day.hd16$cs*0.0036,col="red",lty="dashed",lwd=2)
-lines(hf.day.ld16$doy,hf.day.ld16$cs*0.0036,lty="dashed",lwd=2)
-legend("topleft",c("LD 2017", "HD 2017", "LD 2016", "HD 2016"),
-       lwd=2, lt = c("solid", "solid","dashed", "dashed"),
-       col=c("black","red"),bty="n")
-dev.off()
-#
-plot(hf.day.hd16$doy,hf.day.hd16$shf,col="red",lty="solid",lwd=2,type="l",
-     xlim = c(160,300),
-     ylim = c(-5,17),
-     xlab = "DOY",
-     ylab = expression(paste("G (W ",m^-2,")",sep="")))
+ts.ld5 <- ts.day %>%
+  filter(site == 'ld', sensorZ == 5) %>%
+  rename(Tsoil.L5 = Tsoil)
 
-lines(hf.day.ld16$doy,hf.day.ld16$shf,col="black",lty="solid",lwd=2)
+ts.ld50 <- ts.day %>%
+  filter(site == 'ld', sensorZ == 50) %>%
+  rename(Tsoil.L50 = Tsoil)
 
-plot(hf.day.hd17$doy,hf.day.hd17$shf,col="red",lty="solid",lwd=2,type="l",
-     xlim = c(60,300),
-     ylim = c(-5,20),
-     xlab = "DOY",
-     ylab = expression(paste("G (W ",m^-2,")",sep="")))
+all.day <- left_join(all.day,ts.hd5[,c(1:2,5)])
+all.day <- left_join(all.day,ts.hd50[,c(1:2,5)])
+all.day <- left_join(all.day,ts.ld5[,c(1:2,5)])
+all.day <- left_join(all.day,ts.ld50[,c(1:2,5)]) 
 
-lines(hf.day.ld17$doy,hf.day.ld17$shf,col="black",lty="solid",lwd=2)
+rm(ts.ld5, ts.ld50, ts.hd5, ts.hd50)  
+
+  
+
+all.day$date <- strptime(paste(all.day$year, all.day$doy, sep = '-'),
+                          format = '%Y-%j')
+
+
+
+
+
+
+
