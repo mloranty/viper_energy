@@ -19,34 +19,66 @@ setwd('C:/Users/mloranty/Documents/GitHub/viper_energy/')
 ###################################################
 
 #define plotting variables
-acx <- 1.75
-lw <- 2
-hc <- 'black'
+acx <- 2.75
+lw <- 3
+hc <- 'blue'
 lc <- 'red'
 
-pdf("figures/all_data_timeseries.pdf",28,20)
-par(mfrow = c(7,1), mar=c(0,5,0,2), oma=c(6,2,2,2))
+pdf("figures/canopy_radiation.pdf",28,12)
+par(mfrow = c(3,1), mar=c(0,5,0,2), oma=c(6,2,2,2),cex.axis = acx)
 
 # subcanopy SW and LW
-plot(all.day$date,all.day$IRupL1, type = 'l',lwd = lw,
+plot(all.day$dy,all.day$IRupL1, type = 'l',lwd = lw,
      ylim = c(0,max(all.day$IRupH8,na.rm=T)),
      xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
 axis(side = 1, labels = F, tick = T, cex.axis = acx)
 
-lines(all.day$date, all.day$IRupH1,lwd = lw, col = hc )
-lines(all.day$date, all.day$SRupH1,lwd = lw, col = hc )
-lines(all.day$date, all.day$SRupL1,lwd = lw, col = lc )
+lines(all.day$dy, all.day$IRupH1,lwd = lw, col = hc )
+lines(all.day$dy, all.day$SRupH1,lwd = lw, col = hc )
+lines(all.day$dy, all.day$SRupL1,lwd = lw, col = lc )
 
 
 # differences in incident downwelling subcanopy
-plot(all.day$date,(all.day$IRupL1+all.day$SRupL1)-(all.day$IRupH1+all.day$SRupH1), 
+plot(all.day$dy,(all.day$IRupL1+all.day$SRupL1)-(all.day$IRupH1+all.day$SRupH1), 
      type = 'l',lwd = lw,
 #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
-     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+     yaxt = 'n', xaxt = 'n', ylab = '',xlab = '', col = 'black')
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
 axis(side = 1, labels = F, tick = T, cex.axis = acx)
-abline(h=0)
+abline(h=0,col = "gray", lty = 'dashed', lwd = 2)
+
+# albedo
+plot(all.day$dy,all.day$albL8, 
+     type = 'l',lwd = lw,
+     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     ylab = '',
+     xaxt = 'n',yaxt = 'n',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = T, tick = T, cex = acx, gap.axis = 2)
+
+lines(all.day$dy, all.day$albH8,lwd = lw, col = hc )
+lines(all.day$dy, all.day$ndvi.L,lwd = lw, col = lc, lty = 'dashed' )
+lines(all.day$dy, all.day$ndvi.H,lwd = lw, col = hc, lty = 'dashed' )
+dev.off()
+
+#####################################################################
+# Air/Soil T and Soil HEat Flux
+
+plot(all.day$dy,all.day$Tair.L, 
+     type = 'l',lwd = lw,
+     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
+     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
+axis(side = 1, labels = T, tick = T, cex.axis = acx)
+
+lines(all.day$date, all.day$Tair.H,lwd = lw, col = hc )
+
+
+
+
+
+
 # difference in ground heat flux
 lines(all.day$date, all.day$shfL-all.day$shfL,lwd = lw, col = hc )
 
@@ -81,16 +113,7 @@ lines(all.day$date, all.day$Tsoil.L50,lwd = lw, col = lc, lty = 'dashed' )
 lines(all.day$date, all.day$Tsoil.H50,lwd = lw, col = hc, lty = 'dashed' )
 
 # plot albedo & NDVI
-plot(all.day$date,all.day$albL8, 
-     type = 'l',lwd = lw,
-     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
-     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
-axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
-axis(side = 1, labels = F, tick = T, cex.axis = acx)
 
-lines(all.day$date, all.day$albH8,lwd = lw, col = hc )
-lines(all.day$date, all.day$ndvi.L,lwd = lw, col = lc, lty = 'dashed' )
-lines(all.day$date, all.day$ndvi.H,lwd = lw, col = hc, lty = 'dashed' )
 
 dev.off()
 

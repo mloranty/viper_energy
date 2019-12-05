@@ -238,7 +238,9 @@ all.day$date <- strptime(paste(all.day$year, all.day$doy, sep = '-'),
                           format = '%Y-%j')
 
 
-
+all.day$dy <- ifelse(leap_year(all.day$year),
+                     all.day$year+(all.day$doy/366),
+                     all.day$year+(all.day$doy/365))
 
 
 
