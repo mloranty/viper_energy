@@ -9,7 +9,7 @@
 # this script relies on data pre-processing
 # in ve_data_processing.R script
 setwd('C:/Users/mloranty/Documents/GitHub/viper_energy/')
-
+setwd('/Users/mloranty/Documents/GitHub/viper_energy/')
 # this will eventually work
 # first we should update all data for the Arctic Data Center
 #source('ve_data_processing.R')
@@ -19,47 +19,64 @@ setwd('C:/Users/mloranty/Documents/GitHub/viper_energy/')
 ###################################################
 
 #define plotting variables
-acx <- 2.75
+acx <- 3.5
 lw <- 3
 hc <- 'blue'
 lc <- 'red'
+xl <- c(2016.5,2018)
 
 pdf("figures/canopy_radiation.pdf",28,12)
-par(mfrow = c(3,1), mar=c(0,5,0,2), oma=c(6,2,2,2),cex.axis = acx)
+par(mfrow = c(3,1), mar=c(0,10,0,2), oma=c(6,6,2,2),mgp = c(7,1,0), 
+    cex.axis = acx, cex.lab = acx, cex.axis = acx)
 
 # subcanopy SW and LW
 plot(all.day$dy,all.day$IRupL1, type = 'l',lwd = lw,
-     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
-     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+     ylim = c(0,450),
+     xlim = xl, 
+     ylab = expression(paste("W",m^-2, sep="")),
+     xaxt = 'n',yaxt = 'n', xlab = '', col = lc,)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
 axis(side = 1, labels = F, tick = T, cex.axis = acx)
 
 lines(all.day$dy, all.day$IRupH1,lwd = lw, col = hc )
-lines(all.day$dy, all.day$SRupH1,lwd = lw, col = hc )
-lines(all.day$dy, all.day$SRupL1,lwd = lw, col = lc )
+lines(all.day$dy, all.day$SRupH1,lwd = lw/2, col = hc )
+lines(all.day$dy, all.day$SRupL1,lwd = lw/2, col = lc )
 
+text(2016.5,430,'Mean Daily Subcanopy Radiation',cex = acx, pos = 4, offset = 0)
+text(2016.85,300,'LW',cex = acx, pos = 4, offset = 0)
+text(2016.85,50,'SW',cex = acx, pos = 4, offset = 0)
+
+legend('topright', c('High Density', 'Low Density'), col = c (hc,lc),lwd = lw, bty='n',cex = acx)
 
 # differences in incident downwelling subcanopy
 plot(all.day$dy,(all.day$IRupL1+all.day$SRupL1)-(all.day$IRupH1+all.day$SRupH1), 
      type = 'l',lwd = lw,
+     xlim = xl, 
 #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
-     yaxt = 'n', xaxt = 'n', ylab = '',xlab = '', col = 'black')
+     ylab = expression(paste("W",m^-2, sep="")),
+     yaxt = 'n', xaxt = 'n',xlab = '', col = 'black')
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
 axis(side = 1, labels = F, tick = T, cex.axis = acx)
 abline(h=0,col = "gray", lty = 'dashed', lwd = 2)
-
+text(2016.5,60,'Subcanopy Radiation Difference: Low Density - High Density',
+     cex = acx, pos = 4, offset = 0, bg = 'white')
 # albedo
 plot(all.day$dy,all.day$albL8, 
      type = 'l',lwd = lw,
-     #     ylim = c(0,max(all.day$IRupH8,na.rm=T)),
-     ylab = '',
+     ylim = c(0,1),
+     xlim = xl, 
+     ylab = 'Albedo/NDVI',
      xaxt = 'n',yaxt = 'n',xlab = '', col = lc,)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
-axis(side = 1, labels = T, tick = T, cex = acx, gap.axis = 2)
+axis(side = 1, labels = T, tick = T, cex = acx)
 
 lines(all.day$dy, all.day$albH8,lwd = lw, col = hc )
 lines(all.day$dy, all.day$ndvi.L,lwd = lw, col = lc, lty = 'dashed' )
 lines(all.day$dy, all.day$ndvi.H,lwd = lw, col = hc, lty = 'dashed' )
+
+legend(2016.85,0.8, c('High Density NDVI', 'Low Density NDVI', 'High Density Albedo', 'Low Density Albedo'), 
+       col = c (hc,lc),lwd = lw, , lty = rep(c('dashed', 'solid'), each=2), bty='n',cex = acx)
+
 dev.off()
 
 #####################################################################
