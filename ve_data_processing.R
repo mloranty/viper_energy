@@ -153,14 +153,16 @@ rs.day <- rs %>%
 rsh <- rs.day %>%
   filter(site == 'hd') %>%
   rename(ndvi.H = ndvi)
+rec <- which(rsh$year == 18)
+rsh$year[rec] <- 2018
 
 rsl <- rs.day %>%
   filter(site == 'ld') %>%
   rename(ndvi.L = ndvi)
 
 # join to the mondo data frame
-all.day <- left_join(all.day,rsh[,c(1:2,4)])
-all.day <- left_join(all.day,rsl[,c(1:2,4)])
+all.day <- full_join(all.day,rsh[,c(1:2,4)])
+all.day <- full_join(all.day,rsl[,c(1:2,4)])
 
 # remove unecessary data
 rm(d,dr,dn,u, ur, un, rs, rsh, rsl)
@@ -173,6 +175,12 @@ rm(d,dr,dn,u, ur, un, rs, rsh, rsl)
 ts1 <- read.csv("decagon/soil/tempS.GS3.csv", header = T)
 ta <- read.csv('decagon/met/TempC.VP4.csv', header = T)
 
+# some years are coded wrong and need to be fixed
+rec <- which(ta$year == 18)
+ta$year[rec] <- 2018
+
+rec <- which(ts1$year == 18)
+ts1$year[rec] <- 2018
 #ts2 <- read.csv("decagon/soil/tempS.5TM.csv", header = T)
 # soil moisture from Decagon GS-3 and 5TM sensors, respectively
 #sm1 <- read.csv("decagon/soil/vwc.GS3.csv", header = T)
@@ -192,17 +200,10 @@ ta.ld <- ta.day %>%
   filter(site == 'ld') %>%  
   rename(Tair.L = Tair)
   
-all.day <- left_join(all.day,ta.hd[,c(1:2,4)])
-all.day <- left_join(all.day,ta.ld[,c(1:2,4)])  
+all.day <- full_join(all.day,ta.hd[,c(1:2,4)])
+all.day <- full_join(all.day,ta.ld[,c(1:2,4)])  
 
 rm(ta.ld, ta.hd)  
-  
-# read airport precip and join to wide data frame
-pr <- read.csv('airport/airport.csv', header = T)
-
-all.day <- left_join(all.day,pr[,c(1:2,4)])
-
-rm(pr)
 
 # aggregate daily soil temp and join to wide data frame
 ts.day <- ts1 %>%
@@ -225,14 +226,19 @@ ts.ld50 <- ts.day %>%
   filter(site == 'ld', sensorZ == 50) %>%
   rename(Tsoil.L50 = Tsoil)
 
-all.day <- left_join(all.day,ts.hd5[,c(1:2,5)])
-all.day <- left_join(all.day,ts.hd50[,c(1:2,5)])
-all.day <- left_join(all.day,ts.ld5[,c(1:2,5)])
-all.day <- left_join(all.day,ts.ld50[,c(1:2,5)]) 
+all.day <- full_join(all.day,ts.hd5[,c(1:2,5)])
+all.day <- full_join(all.day,ts.hd50[,c(1:2,5)])
+all.day <- full_join(all.day,ts.ld5[,c(1:2,5)])
+all.day <- full_join(all.day,ts.ld50[,c(1:2,5)]) 
 
 rm(ts.ld5, ts.ld50, ts.hd5, ts.hd50)  
 
-  
+# read airport precip and join to wide data frame
+pr <- read.csv('airport/airport.csv', header = T)
+
+all.day <- left_join(all.day,pr[,c(1:2,4)])
+
+rm(pr)  
 
 all.day$date <- strptime(paste(all.day$year, all.day$doy, sep = '-'),
                           format = '%Y-%j')
@@ -242,6 +248,13 @@ all.day$dy <- ifelse(leap_year(all.day$year),
                      all.day$year+(all.day$doy/366),
                      all.day$year+(all.day$doy/365))
 
+all.day <- all.day[order(all.day$dy),]
 
+# set albedo to NA when above canopy radiation is less than 20 W/m2
+rec <- which(all.day$SRupH8 < 30)
+all.day[rec,c(8,14,20,26)] <- NA
 
-
+# set winter ndvi to NA (Nov - April)
+rec <- which(all.day$doy > 274 & all.day$doy < 150)
+all.day$ndvi.H[rec] <- NA
+all.day$ndvi.L[rec] <- NA
