@@ -87,7 +87,7 @@ plot(all.day$dy,all.day$albL8,
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
 axis(at = tx, side = 1, labels = F, tick = T, cex.axis = acx, outer =T)
 mtext(tl, side = 1, line = 2.5, at = tx, cex = acx-1)
-mtext(yl, side = 1, line = 5.5, at = yx, cex = acx-1)
+mtext(yl, side = 1, line = 6.5, at = yx, cex = acx-1)
 
 lines(all.day$dy, all.day$albH8,lwd = lw, col = hc )
 lines(all.day$dy, all.day$ndvi.L,lwd = lw, col = lc, lty = 'dashed' )
@@ -102,16 +102,17 @@ dev.off()
 # Air/Soil T and Soil Heat Flux
 pdf("figures/temp_plots.pdf",28,12)
 par(mfrow = c(3,1), mar=c(0,10,0,2), oma=c(12,6,2,2),mgp = c(7,1,0), 
-    cex.axis = acx, cex.lab = acx, cex.axis = acx)
+    cex.axis = acx, cex.lab = acx)
 
 ############################### Air Temp & precip
 plot(all.day$dy,all.day$Tair.L, 
      type = 'l',lwd = lw,
      xlim = xl, 
+     ylab = expression(paste("Air Temp (",C*degree,')', sep="")),
      ylim = c(-42, 22),
-     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = lc,)
+     xaxt = 'n',yaxt = 'n',xlab = '', col = lc,)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
-axis(side = 1, labels = F, tick = T, cex.axis = acx)
+axis(at = tx, side = 1, labels = F, tick = T, cex.axis = acx)
 
 lines(all.day$dy, all.day$Tair.H,lwd = lw, col = hc )
 
@@ -129,9 +130,9 @@ plot(all.day$dy,all.day$shfH, type = 'l',lwd = lw,
      xlim = xl, 
      ylim = c(-5,27),
      ylab = expression(paste("W",m^-2, sep="")),
-     xaxt = 'n',yaxt = 'n',xlab = '', col = hc,)
+     xaxt = 'n',yaxt = 'n',xlab = '', col = hc)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
-axis(side = 1, labels = F, tick = T, cex.axis = acx)
+axis(at = tx, side = 1, labels = F, tick = T, cex.axis = acx)
 
 lines(all.day$dy, all.day$shfL,lwd = lw, col = lc )
 # difference in ground heat flux
@@ -146,11 +147,12 @@ plot(all.day$dy,all.day$Tsoil.H5,
      type = 'l',lwd = lw,
      xlim = xl, 
      ylim = c(-12,12),
-     xaxt = 'n',yaxt = 'n', ylab = '',xlab = '', col = hc,)
+     ylab = expression(paste("Soil Temp (",C*degree,')', sep="")),
+     xaxt = 'n',yaxt = 'n',xlab = '', col = hc,)
 axis(side = 2, labels = T, tick = T, las = 2, cex.axis = acx)
-axis(side = 1, labels = F, tick = T, cex.axis = acx)
+axis(at = tx, side = 1, labels = F, tick = T, cex.axis = acx)
 mtext(tl, side = 1, line = 2.5, at = tx, cex = acx-1)
-mtext(yl, side = 1, line = 5.5, at = yx, cex = acx-1)
+mtext(yl, side = 1, line = 6.5, at = yx, cex = acx-1)
 
 lines(all.day$dy, all.day$Tsoil.L5,lwd = lw, col = lc )
 lines(all.day$dy, all.day$Tsoil.L50,lwd = lw, col = lc, lty = 'dashed' )
@@ -162,13 +164,73 @@ legend(2017.5,0, c('High Density 5cm', 'Low Density 5cm', 'High Density 50cm', '
 dev.off()
 
 #####################################################################
-# cumulative Soil Heat Flux
-plot(hf.day.ld17$doy,hf.day.ld17$cs*0.0036,type="l",
-     ylab = "Cumulative G (MJ)",xlab="")
-lines(hf.day.hd17$doy,hf.day.hd17$cs*0.0036,col="red")
-lines(hf.day.hd16$doy,hf.day.hd16$cs*0.0036,col="red",lty="dashed")
-lines(hf.day.ld16$doy,hf.day.ld16$cs*0.0036,lty="dashed")
+# plot thaw depth
+w <- 2
+pdf("figures/thaw_depth.pdf",6,5)
+par(mfrow = c(1,1), mar=c(4,5,2,2),mgp = c(3,1,0), 
+    cex.axis = 1.5, cex.lab = 1.5)
 
+plot(td.l$doy[which(td.l$year==2016)], td.l$td[which(td.l$year==2016)], type = 'l', 
+     xlim = range(c(td.l$doy,td.h$doy)),
+     ylim = c(0,80),
+     col = lc, pch = 16, lty = 'dashed', lwd = w,
+     xlab = 'Day of Year', yaxt = 'n',
+     ylab = 'Thaw Depth (cm)', 
+     main = 'Permafrost Thaw Depth')
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = 1.5)
+lines(td.h$doy[which(td.h$year==2016)], td.h$td[which(td.h$year==2016)], 
+      type = 'l', col = hc,pch = 16, lty = 'dashed', lwd = w)
+lines(td.h$doy[which(td.h$year==2017)], td.h$td[which(td.h$year==2017)], 
+      type = 'l', col = hc, pch = 17 , lwd = w)
+lines(td.l$doy[which(td.l$year==2017)], td.l$td[which(td.l$year==2017)], 
+      type = 'l', col = lc , pch = 17, lwd = w)
+
+legend('bottomright',c('HD 2016', 'LD 2016', 'HD 2017', 'LD2017'),lwd = 2,
+       col = c(hc, lc, hc, lc), lty = rep(c('dashed', 'solid'), each = 2), bty = 'n')
+dev.off()
+#####################################################################
+# cumulative Soil Heat Flux
+ref <- 3:48
+pdf("figures/cum_shf_smr2016.pdf",5,4)
+par(mfrow = c(1,1), mar=c(4,5,2,2),mgp = c(3,1,0), 
+    cex.axis = 1.5, cex.lab = 1.5)
+plot(all.day$doy[ref],cumsum(all.day$shfL[ref])*0.0036,
+     type="l", col = lc,lwd = w,
+     ylab = "Cumulative G (MJ)",
+     xlab = 'Day of Year', yaxt = 'n')
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = 1.5)
+lines(all.day$doy[ref],cumsum(all.day$shfH[ref])*0.0036,
+      lwd = w, col = hc)
+dev.off()
+
+# 2017 doy 92 - 179
+ref <- which( all.day$year == 2017 & all.day$doy > 91 & all.day$doy < 180)
+pdf("figures/cum_shf_spr2017.pdf",5,4)
+par(mfrow = c(1,1), mar=c(4,5,2,2),mgp = c(3,1,0), 
+    cex.axis = 1.5, cex.lab = 1.5)
+plot(all.day$doy[ref],cumsum(all.day$shfL[ref])*0.0036,
+     type="l", col = lc,lwd = w,
+     ylab = "Cumulative G (MJ)",
+     xlab = 'Day of Year', yaxt = 'n')
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = 1.5)
+lines(all.day$doy[ref],cumsum(all.day$shfH[ref])*0.0036,
+      lwd = w, col = hc)
+dev.off()
+
+# 2017 doy 226 - 344
+ref <- which( all.day$year == 2017 & all.day$doy > 226 & all.day$doy < 344)
+pdf("figures/cum_shf_fall2017.pdf",5,4)
+par(mfrow = c(1,1), mar=c(4,5,2,2),mgp = c(3,1,0), 
+    cex.axis = 1.5, cex.lab = 1.5)
+plot(all.day$doy[ref],cumsum(all.day$shfL[ref])*0.0036,
+     type="l", col = lc,lwd = w,
+     ylab = "Cumulative G (MJ)",
+     ylim = c(0,0.5),
+     xlab = 'Day of Year', yaxt = 'n')
+axis(side = 2, labels = T, tick = T, las = 2, cex.axis = 1.5)
+lines(all.day$doy[ref],cumsum(all.day$shfH[ref])*0.0036,
+      lwd = w, col = hc)
+dev.off()
 #################################################################################
 ############### don't need this now because of the wide data set ################
 #################################################################################

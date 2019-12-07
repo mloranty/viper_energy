@@ -258,3 +258,20 @@ all.day[rec,c(8,14,20,26)] <- NA
 rec <- which(all.day$doy > 274 & all.day$doy < 150)
 all.day$ndvi.H[rec] <- NA
 all.day$ndvi.L[rec] <- NA
+
+# read thaw depth
+td <- read.csv('https://cn.dataone.org/cn/v2/resolve/urn:uuid:e0e3bf04-97b8-4891-95e3-f63ae85d8dae', 
+               header = T)
+td$d <- as.POSIXct(td$Date, format = '%m/%d/%Y')
+td$year <- year(td$d)
+td$doy <- yday(td$d)
+
+td.day <- td %>%
+  group_by(site, year, doy) %>%
+  summarise(td = mean(TD, na.rm = T))
+
+td.h <- td.day %>%
+  filter(site == 'hd')
+
+td.l <- td.day %>%
+  filter(site == 'ld')
